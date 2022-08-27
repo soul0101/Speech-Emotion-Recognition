@@ -21,7 +21,7 @@ def predict_emotion_from_stream(audio_data : np.ndarray, sample_rate : int = 160
     Parameters
     ----------
     audio_data: np.ndarray [shape=(n,) or (…, n)]
-        audio time series. Multi-channel is supported.
+        audio time series. Multi-channel is supported
     sample_rate: int
         sampling rate of the audio_data
 
@@ -45,7 +45,7 @@ def get_audio_data(file_object):
     Returns
     -------
     audio_data: np.ndarray [shape=(n,) or (…, n)]
-        audio time series. Multi-channel is supported.
+        audio time series. Multi-channel is supported
     sample_rate: int
         sampling rate of the audio_data
     """
