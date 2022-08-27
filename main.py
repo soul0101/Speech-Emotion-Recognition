@@ -1,5 +1,6 @@
 import os
 import librosa
+import matplotlib
 import numpy as np
 import soundfile as sf
 import streamlit as st
@@ -10,18 +11,50 @@ from CNN.SpeechEmotionRecognition import SpeechEmotionRecognition
 st_audiorec = components.declare_component("st_audiorec", path=os.path.join(os.path.dirname(__file__), "st_audiorec/frontend/build"))
 
 # Load Model
-
 analyzer = SpeechEmotionRecognition(subdir_model = os.path.join(os.path.dirname(__file__), "./Model/CNN/MODEL_CNN_LSTM.hdf5"))
 
-def predict_emotion_from_stream(audio_data, sample_rate):
-    return analyzer.predict_emotion_from_stream(audio_data, sample_rate=sample_rate)
+def predict_emotion_from_stream(audio_data : np.ndarray, sample_rate : int = 16000 ) -> list:
+    """
+    Gets the emotion predictions for the audio track
 
-# UI
+    Parameters
+    ----------
+    audio_data: np.ndarray [shape=(n,) or (…, n)]
+        audio time series. Multi-channel is supported.
+    sample_rate: int
+        sampling rate of the audio_data
 
-def visualizer(signal, sample_rate, predictions):
+    Returns
+    -------
+    predictions: list [emotions, timestamp]
+        List of predicted emotions and timestamps
+    """
+
+    predictions = analyzer.predict_emotion_from_stream(audio_data, sample_rate=sample_rate)
+    print(type(predictions))
+    return predictions
+
+def visualizer(audio_data : np.ndarray, sample_rate : int, predictions : list) -> matplotlib.figure.Figure: 
+    """
+    Plots audio spectrogram with predictions
+
+    Parameters
+    ----------
+    audio_data: np.ndarray [shape=(n,) or (…, n)]
+        audio time series. Multi-channel is supported.
+    sample_rate: int
+        sampling rate of the audio_data
+    predictions: list [emotions, timestamp]
+        List of predicted emotions and timestamps
+
+    Returns
+    -------
+    matplotlib.figure.Figure
+    """
+
     fig, ax = plt.subplots()
-    time = np.linspace(0, len(signal) / sample_rate, num=len(signal))
-    plt.plot(time, signal)
+    time = np.linspace(0, len(audio_data) / sample_rate, num=len(audio_data))
+    plt.plot(time, audio_data)
     emotion_colors = {'Angry': 'red', 'Disgust': 'green', 'Fear': 'purple', 'Happy': 'yellow', 'Neutral' : 'grey', 'Sad': 'blue', 'Surprise': 'orange'}
 
     for i in range(len(predictions[1])):
@@ -33,7 +66,9 @@ def visualizer(signal, sample_rate, predictions):
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     plt.legend(by_label.values(), by_label.keys())
-    st.pyplot(fig)
+    return fig
+
+################################## UI ##############################################
 
 def st_ui():
 
@@ -61,8 +96,9 @@ def st_ui():
         y, sr = analyzer.load_audio(file_path)
         btn = st.button("Generate")
         if btn:
-            pred = analyzer.predict_emotion_from_stream(y, sample_rate=sr)
-            visualizer(y, sr, pred)
+            pred = predict_emotion_from_stream(y, sample_rate=sr)
+            fig = visualizer(y, sr, pred)
+            st.pyplot(fig)
             st.write(pred)
             
     elif audio_choice == 'Upload':
@@ -73,8 +109,9 @@ def st_ui():
 
             btn = st.button("Generate")
             if btn:
-                pred = analyzer.predict_emotion_from_stream(y, sample_rate=sr)
-                visualizer(y, sr, pred)
+                pred = predict_emotion_from_stream(y, sample_rate=sr)
+                fig = visualizer(y, sr, pred)
+                st.pyplot(fig)
                 st.write(pred)
                 
     else:
@@ -93,8 +130,9 @@ def st_ui():
                 new_rate = 16000
                 X = np.mean(X, axis=1)
                 X = librosa.resample(X, orig_sr=sample_rate, target_sr=new_rate)
-                pred = analyzer.predict_emotion_from_stream(X)
-                visualizer(X, new_rate, pred)
+                pred = predict_emotion_from_stream(X)
+                fig = visualizer(X, new_rate, pred)
+                st.pyplot(fig)
                 st.write(pred)
 
 if __name__ == "__main__":
