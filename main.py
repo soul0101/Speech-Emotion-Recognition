@@ -139,21 +139,22 @@ def st_ui():
     else:
         st_audiorec = components.declare_component("st_audiorec", path=os.path.join(os.path.dirname(__file__), "st_audiorec/frontend/build"))
         val = st_audiorec()
-        btn = st.button("Generate")
-        if isinstance(val, dict) and btn:  # retrieve audio data
-            with st.spinner('retrieving audio-recording...'):
-                ind, val = zip(*val['arr'].items())
-                ind = np.array(ind, dtype=int)  # convert to np array
-                val = np.array(val)             # convert to np array
-                sorted_ints = val[ind]
-                stream = BytesIO(b"".join([int(v).to_bytes(1, "big") for v in sorted_ints]))
-                stream.seek(0)
+        if isinstance(val, dict):  # retrieve audio data
+            btn = st.button("Generate")
+            if btn:
+                with st.spinner('retrieving audio-recording...'):
+                    ind, val = zip(*val['arr'].items())
+                    ind = np.array(ind, dtype=int)  # convert to np array
+                    val = np.array(val)             # convert to np array
+                    sorted_ints = val[ind]
+                    stream = BytesIO(b"".join([int(v).to_bytes(1, "big") for v in sorted_ints]))
+                    stream.seek(0)
 
-                X, sample_rate = sf.read(stream)
-                pred = predict_emotion_from_stream(X, sample_rate = sample_rate)
-                fig = visualizer(X, sample_rate, pred)
-                st.pyplot(fig)
-                st.dataframe(predictions_table(pred))
+                    X, sample_rate = sf.read(stream)
+                    pred = predict_emotion_from_stream(X, sample_rate = sample_rate)
+                    fig = visualizer(X, sample_rate, pred)
+                    st.pyplot(fig)
+                    st.dataframe(predictions_table(pred))
 
 if __name__ == "__main__":
     st_ui()
