@@ -9,8 +9,6 @@ from io import BytesIO
 import matplotlib.pyplot as plt
 import streamlit.components.v1 as components
 from CNN.SpeechEmotionRecognition import SpeechEmotionRecognition
-st_audiorec = components.declare_component("st_audiorec", path=os.path.join(os.path.dirname(__file__), "st_audiorec/frontend/build"))
-
 # Load Model
 analyzer = SpeechEmotionRecognition(subdir_model = os.path.join(os.path.dirname(__file__), "./Model/CNN/MODEL_CNN_LSTM.hdf5"))
 
@@ -100,7 +98,6 @@ def predictions_table(predictions):
     return pd.DataFrame(data)
 
 def st_ui():
-
     st.write("# Audio Emotion Analysis 🎙️")
     st.markdown(
         """
@@ -144,6 +141,7 @@ def st_ui():
                 st.dataframe(predictions_table(pred))
                 
     else:
+        st_audiorec = components.declare_component("st_audiorec", path=os.path.join(os.path.dirname(__file__), "st_audiorec/frontend/build"))
         val = st_audiorec()
         btn = st.button("Generate")
         if isinstance(val, dict) and btn:  # retrieve audio data
