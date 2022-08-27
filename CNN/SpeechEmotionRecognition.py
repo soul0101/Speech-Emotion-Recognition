@@ -3,8 +3,6 @@ import numpy as np
 import random 
 
 ## Audio Preprocessing ##
-import pyaudio
-import wave
 import librosa
 from scipy.stats import zscore
 import streamlit as st
