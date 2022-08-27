@@ -47,11 +47,6 @@ def get_audio_data(file_object):
     sample_rate: int
         sampling rate of the audio_data
     """
-    return file_object
-    extension = os.path.splitext(file_object.name)[1]
-    if extension not in [".wav"]:
-        raise TypeError("This file type is not supported, please only use 'wav' files")
-
     audio_data, sample_rate = librosa.load(file_object, sr=16000)
     return audio_data, sample_rate
     
