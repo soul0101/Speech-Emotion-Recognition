@@ -6,6 +6,7 @@ import random
 import librosa
 from scipy.stats import zscore
 import streamlit as st
+
 ## Time Distributed CNN ##
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
@@ -137,7 +138,16 @@ class SpeechEmotionRecognition:
     Predict speech emotion over time from an audio stream
     '''
     def predict_emotion_from_stream(self, y, chunk_step=16000, chunk_size=49100, predict_proba=False, sample_rate=16000):
-        # For short audio files
+        # Sterio to mono
+        if y.ndim > 1 and y.shape[1] > 1:
+            y = np.mean(y, axis=1)
+
+        # Convert sampling rate to 16000
+        if sample_rate != 16000:
+            y = librosa.resample(y, orig_sr=sample_rate, target_sr=16000)
+            sample_rate = 16000
+
+        # Padding for short audio files
         if y.shape[0] < chunk_size:
             pad_length = chunk_size - y.shape[0]
             pre_length = random.randint(0, pad_length)

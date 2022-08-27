@@ -2,6 +2,7 @@ import os
 import librosa
 import matplotlib
 import numpy as np
+import pandas as pd
 import soundfile as sf
 import streamlit as st
 from io import BytesIO
@@ -31,9 +32,30 @@ def predict_emotion_from_stream(audio_data : np.ndarray, sample_rate : int = 160
     """
 
     predictions = analyzer.predict_emotion_from_stream(audio_data, sample_rate=sample_rate)
-    print(type(predictions))
     return predictions
 
+def get_audio_data(file_object):
+    """
+    Gets audio time series from python file object
+
+    Parameters
+    ----------
+    file_object: python file object opened in 'rb' mode
+
+    Returns
+    -------
+    audio_data: np.ndarray [shape=(n,) or (…, n)]
+        audio time series. Multi-channel is supported.
+    sample_rate: int
+        sampling rate of the audio_data
+    """
+    extension = os.path.splitext(file_object.name)[1]
+    if extension not in [".wav"]:
+        raise TypeError("This file type is not supported, please only use 'wav' files")
+
+    audio_data, sample_rate = librosa.load(file_object, sr=16000)
+    return audio_data, sample_rate
+    
 def visualizer(audio_data : np.ndarray, sample_rate : int, predictions : list) -> matplotlib.figure.Figure: 
     """
     Plots audio spectrogram with predictions
@@ -70,6 +92,13 @@ def visualizer(audio_data : np.ndarray, sample_rate : int, predictions : list) -
 
 ################################## UI ##############################################
 
+def predictions_table(predictions):
+    data = {
+        'Time Stamp (s)': predictions[1],
+        'Emotion': predictions[0]
+    }
+    return pd.DataFrame(data)
+
 def st_ui():
 
     st.write("# Audio Emotion Analysis 🎙️")
@@ -99,10 +128,10 @@ def st_ui():
             pred = predict_emotion_from_stream(y, sample_rate=sr)
             fig = visualizer(y, sr, pred)
             st.pyplot(fig)
-            st.write(pred)
+            st.dataframe(predictions_table(pred))
             
     elif audio_choice == 'Upload':
-        uploaded_file = st.file_uploader("Choose a file", type=['wav', 'mp3'])
+        uploaded_file = st.file_uploader("Choose a file", type=['wav'])
         if uploaded_file is not None:
             st.audio(uploaded_file)
             y, sr = analyzer.load_audio(uploaded_file)
@@ -112,7 +141,7 @@ def st_ui():
                 pred = predict_emotion_from_stream(y, sample_rate=sr)
                 fig = visualizer(y, sr, pred)
                 st.pyplot(fig)
-                st.write(pred)
+                st.dataframe(predictions_table(pred))
                 
     else:
         val = st_audiorec()
@@ -127,13 +156,10 @@ def st_ui():
                 stream.seek(0)
 
                 X, sample_rate = sf.read(stream)
-                new_rate = 16000
-                X = np.mean(X, axis=1)
-                X = librosa.resample(X, orig_sr=sample_rate, target_sr=new_rate)
-                pred = predict_emotion_from_stream(X)
-                fig = visualizer(X, new_rate, pred)
+                pred = predict_emotion_from_stream(X, sample_rate = sample_rate)
+                fig = visualizer(X, sample_rate, pred)
                 st.pyplot(fig)
-                st.write(pred)
+                st.dataframe(predictions_table(pred))
 
 if __name__ == "__main__":
     st_ui()
