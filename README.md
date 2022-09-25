@@ -1,4 +1,8 @@
-# Speech-Emotion-Recognition
+# Speech-Emotion-Recognition - [Live App](https://app.daisi.io/daisies/soul0101/Speech%20Emotion%20Recognition/app)
+
+<p align="center">
+    <img src="https://user-images.githubusercontent.com/53980340/192162890-75faaf98-2c1c-46e8-a752-945c88be9529.png" alt="Logo" width="700">        
+</p>
 
 Extracting and analysing speech in an audio file has a wide variety of applications. 
 
